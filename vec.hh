@@ -69,15 +69,15 @@ public:
 inline
 const Vuint16_t &c(int i) { return *new Vuint16_tConst(i); }
 
-inline
-const Vuint16_t & operator ""_v8 (unsigned long long i) { return *new Vuint16_tConst(i); }
+inline const Vuint16_t &operator""_v16(unsigned long long i) {
+  return *new Vuint16_tConst(i);
+}
 
 #else
 
 typedef uint16_t Uint16_t;
 
-inline
-const uint16_t operator ""_v8 (unsigned long long i) { return i; }
+inline const uint16_t operator""_v16(unsigned long long i) { return i; }
 
 #endif
 
