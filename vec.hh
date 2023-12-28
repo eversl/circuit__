@@ -10,78 +10,116 @@
 #include <typeinfo>
 
 #ifdef GEN
-class Vec {};
 
-class Vuint16_t;
-class Vuint16_tAdd;
-class Vuint16_tArg;
-class Vuint16_tConst;
 
-typedef const Vuint16_t& Uint16_t;
-
-class Vuint16_t : public Vec {
+template<typename T>
+class Vec {
 public:
-  Vuint16_t() {}
-  Vuint16_t(int v);
+    Vec(T v);
 
-  virtual
-  Vuint16_t* operator+(Uint16_t o) const;
+    Vec<T> *operator+(const Vec<T> &o) const;
 
+    virtual void run(std::ostream &ostream) const = 0;
 
-  virtual void run(std::ostream& s) const {};
-
-};
-
-std::ostream& operator<<(std::ostream& os, const Vuint16_t& dt);
-
-
-class Vuint16_tAdd : public Vuint16_t {
-public:
-  Vuint16_tAdd(Uint16_t a, Uint16_t b) : a(a), b(b) {}
-  virtual void run(std::ostream& s) const {
-    a.run(s);
-    s << " + ";
-    b.run(s);
-  }
+protected:
+    Vec() {}
 
 private:
-  const Vuint16_t &a, &b;
+
 };
 
-class Vuint16_tArg : public Vuint16_t {
+
+template<typename T>
+using v = const Vec<T> &;
+
+
+template<typename T>
+std::ostream &operator<<(std::ostream &os, const v<T> dt);
+
+
+template<typename T>
+class VecAdd : public Vec<T> {
 public:
-  Vuint16_tArg(std::string name) : name(name) {}
+    VecAdd(v<T> a, v<T> b) : a(a), b(b) {}
 
-  std::string name;
+    virtual void run(std::ostream &s) const {
+        a.run(s);
+        s << " + ";
+        b.run(s);
+    }
 
-  virtual void run(std::ostream& s) const { s << name;}
+private:
+    const Vec<T> &a, &b;
 };
 
-class Vuint16_tConst : public Vuint16_t {
+template<typename T>
+class VecArg : public Vec<T> {
 public:
-  Vuint16_tConst(int v) : v(v) {}
+    VecArg(std::string name) : name(name) {}
 
-  int v;
+    std::string name;
 
-  virtual void run(std::ostream& s) const { s << v;}
+    virtual void run(std::ostream &s) const { s << name; }
 };
 
-inline
-const Vuint16_t &c(int i) { return *new Vuint16_tConst(i); }
+template<typename T>
+class VecConst : public Vec<T> {
+public:
+    VecConst(T v) : v(v) {}
 
-inline const Vuint16_t &operator""_v16(unsigned long long i) {
-  return *new Vuint16_tConst(i);
+    T v;
+
+    virtual void run(std::ostream &s) const { s << v; }
+};
+
+template<typename T>
+inline const Vec<T> &c(int i) { return *new VecConst<T>(i); }
+
+
+template<typename T>
+Vec<T> *Vec<T>::operator+(const Vec<T> &o) const {
+    VecAdd<T> *res = new VecAdd(*this, o);
+    return res;
 }
+
+template<typename T>
+Vec<T>::Vec(T v) {
+    *this = *new VecConst<T>>
+    (v);
+}
+
+
+template<typename T>
+std::ostream &operator<<(std::ostream &os, const Vec<T> &dt) {
+    dt.run(os);
+    return os;
+}
+
+
+const Vec<uint16_t> &operator ""_v16(unsigned long long i);
 
 #else
 
-typedef uint16_t Uint16_t;
+template <typename T>
+class v {
+public:
+    v(T val) : val(val) {}
+    operator T() const { return val; }
+    v<T> operator*(uint64_t other) const { return v(val * other); }
+    v<T> operator*(uint8_t other) const { return v(val * other); }
+    v<T> operator+(int other) const { return v(val + other); }
+    v<T> operator+(v<T> other) const { return v(val + other); }
+    bool operator<=(T other) const { return val <= other; }
+
+private:
+    T val;
+};
 
 inline const uint16_t operator""_v16(unsigned long long i) { return i; }
 
 #endif
 
 
-Uint16_t sim();
+v<uint16_t> sim();
 
 #endif // CIRCUIT____VEC_HH

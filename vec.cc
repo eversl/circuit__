@@ -1,15 +1,10 @@
 #include "vec.hh"
 
+#ifdef GEN
 
-Vuint16_t *Vuint16_t::operator+(Uint16_t o) const {
-  Vuint16_tAdd *res = new Vuint16_tAdd(*this, o);
-  return res;
+
+ const Vec<uint16_t> &operator""_v16(unsigned long long i) {
+    return *new VecConst<uint16_t>(i);
 }
 
-Vuint16_t::Vuint16_t(int v) { *this = *new Vuint16_tConst(v); }
-
-
-std::ostream &operator<<(std::ostream &os, const Vuint16_t &dt) {
-  dt.run(os);
-  return os;
-}
+#endif
