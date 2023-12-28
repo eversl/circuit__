@@ -17,7 +17,7 @@ class Vec {
 public:
     Vec(T v);
 
-    Vec<T> & operator+(const Vec<T> &o) const;
+    const Vec<T> &operator+(const Vec<T> &o) const;
 
     virtual void run(std::ostream &ostream) const = 0;
 
@@ -77,8 +77,8 @@ inline const Vec<T> &c(int i) { return *new VecConst<T>(i); }
 
 
 template<typename T>
-Vec<T> & Vec<T>::operator+(const Vec<T> &o) const {
-    VecAdd<T> *res = new VecAdd(*this, o);
+const Vec<T> &Vec<T>::operator+(const Vec<T> &o) const {
+    const VecAdd<T> *res = new VecAdd(*this, o);
     return *res;
 }
 

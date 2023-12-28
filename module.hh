@@ -21,21 +21,25 @@ public:
 };
 
 class module {
+
+    virtual v<uint16_t> lambda(v<uint16_t> a, v<uint16_t> b) = 0;
+
 public:
-    module(std::string name) : name(name) {
+    module(std::string name) : name(name) {}
+    void init(){
         size_t len = sizeof(uint16_t) * bitsPerByte;
-        std::cout << len << "\n";
-        std::cout << "module " << name << "(input [" << len - 1 << ":0] a, input  [" << len - 1 << ":0] b, output ["
+        std::cout << "module " << name << "(input [" << len - 1 << ":0] a, input [" << len - 1 << ":0] b, output ["
                   << len - 1 << ":0] r);\n";
 
-        v<uint16_t> val = (*this)(VecArg<uint16_t>("a"), VecArg<uint16_t>("b"));
+        v<uint16_t> v = lambda(VecArg<uint16_t>("a"), VecArg<uint16_t>("b"));
         std::cout << "\n\tassign r = ";
-        val.run(std::cout);
+        v.run(std::cout);
         std::cout << ";\n\n";
         std::cout << "endmodule\n\n";
     }
 
-virtual v<uint16_t> operator()(v<uint16_t> a, v<uint16_t> b) {
+
+    v<uint16_t> operator()(v<uint16_t> a, v<uint16_t> b) {
         return *new instantiation(*this, a, b);
     }
 
@@ -45,11 +49,20 @@ virtual v<uint16_t> operator()(v<uint16_t> a, v<uint16_t> b) {
 #else
 
 class module {
+
+    virtual v<uint16_t> lambda(v<uint16_t> a, v<uint16_t> b) = 0;
+
 public:
- module(std::string )  {}
+   module(std::string)  {}
 
-    virtual v<uint16_t> operator()(v<uint16_t> a, v<uint16_t> b) = 0;
 
+  v<uint16_t> operator() (v<uint16_t> a, v<uint16_t> b) {
+    return lambda(a, b);
+  }
+
+    void init() {
+
+    }
 };
 
 #endif

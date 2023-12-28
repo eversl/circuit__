@@ -2,21 +2,21 @@
 #include "module.hh"
 #include "vec.hh"
 
-class calcModule : public module {
-public:
-    calcModule(std::string name) : module(name) {}
 
-    v<uint16_t> operator() (v<uint16_t> a, v<uint16_t> b) override {
-        return (a + b); };
+class calcModule : public module {
+
+     virtual v<uint16_t> lambda(v<uint16_t> a, v<uint16_t> b) override {
+         v<uint16_t> pVec = a + b;
+         return pVec; }
+
+public:
+
+    calcModule() : module("calc") {init();}
 };
 
-calcModule calc("calc");
-
-//v<uint16_t> calc(v<uint16_t> a, v<uint16_t> b) {
-//  return a + b;
-//}
+module& calc = *new calcModule();
 
 v<uint16_t> sim() {
-  v<uint16_t> i = calc(10_v16, 12_v16);
-  return i;
+    v<uint16_t> i = calc(10_v16, 12_v16);
+    return i;
 }
