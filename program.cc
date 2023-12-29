@@ -6,8 +6,10 @@
 class calcModule : public module {
 
      virtual v<uint16_t> lambda(v<uint16_t> a, v<uint16_t> b) override {
-         v<uint16_t> pVec = a + b;
-         return pVec; }
+         v<uint16_t> c = a + b;
+         v<uint32_t> d = (v<uint32_t>) c;
+         v<uint16_t> e = (v<uint16_t>) d;
+         return e; }
 
 public:
 

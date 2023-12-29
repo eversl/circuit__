@@ -8,6 +8,9 @@
 #include <iostream>
 #include <string>
 #include <typeinfo>
+#include <cassert>
+
+static const size_t bitsPerByte = 8;
 
 #ifdef GEN
 
@@ -15,7 +18,11 @@
 template<typename T>
 class Vec {
 public:
-    Vec(T v);
+    template<typename U>
+    explicit operator const Vec<U> &() const;
+
+//    template<typename U>
+//    Vec<U>(const Vec<U> &val);
 
     const Vec<T> &operator+(const Vec<T> &o) const;
 
@@ -28,14 +35,11 @@ private:
 
 };
 
-
 template<typename T>
 using v = const Vec<T> &;
 
-
 template<typename T>
-std::ostream &operator<<(std::ostream &os, const v<T> dt);
-
+std::ostream &operator<<(std::ostream &os, v<T> dt);
 
 template<typename T>
 class VecAdd : public Vec<T> {
@@ -52,6 +56,7 @@ private:
     const Vec<T> &a, &b;
 };
 
+
 template<typename T>
 class VecArg : public Vec<T> {
 public:
@@ -61,6 +66,7 @@ public:
 
     virtual void run(std::ostream &s) const { s << name; }
 };
+
 
 template<typename T>
 class VecConst : public Vec<T> {
@@ -72,20 +78,51 @@ public:
     virtual void run(std::ostream &s) const { s << v; }
 };
 
+
+template<typename T, typename U>
+class VecConvert : public Vec<U> {
+public:
+    VecConvert(const Vec<T> &val) : val(val) {}
+
+    virtual void run(std::ostream &s) const {
+        size_t t_size = sizeof(T);
+        size_t u_size = sizeof(U);
+        if (t_size > u_size) {
+            s << "( ";
+            val.run(s);
+            s << ") [" << t_size * bitsPerByte - 1 << ":0] ";
+
+        } else if (t_size < u_size) {
+            s << "{ " << (u_size-t_size) * bitsPerByte << "'b0 , ( ";
+            val.run(s);
+            s << " ) }";
+
+        } else {
+            assert(!"Case to be implemented");
+        }
+
+    }
+
+private:
+    const Vec<T> &val;
+};
+
 template<typename T>
 inline const Vec<T> &c(int i) { return *new VecConst<T>(i); }
+
+template<typename T>
+template<typename U>
+Vec<T>::operator const Vec<U> &() const {
+    const Vec<T> &val = *this;
+    const Vec<U> *res = new VecConvert<T, U>(val);
+    return *res;
+}
 
 
 template<typename T>
 const Vec<T> &Vec<T>::operator+(const Vec<T> &o) const {
     const VecAdd<T> *res = new VecAdd(*this, o);
     return *res;
-}
-
-template<typename T>
-Vec<T>::Vec(T v) {
-    *this = *new VecConst<T>>
-    (v);
 }
 
 
@@ -104,6 +141,8 @@ template <typename T>
 class v {
 public:
     v(T val) : val(val) {}
+    template <typename U>
+    v(v<U> val) : val(val) {}
     operator T() const { return val; }
     v<T> operator*(uint64_t other) const { return v(val * other); }
     v<T> operator*(uint8_t other) const { return v(val * other); }

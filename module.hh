@@ -3,7 +3,6 @@
 
 #include "vec.hh"
 
-static const size_t bitsPerByte = 8;
 #ifdef GEN
 
 class module;
