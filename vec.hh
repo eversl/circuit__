@@ -15,21 +15,22 @@ static const size_t bitsPerByte = 8;
 #ifdef GEN
 
 
+class BitVec {
+};
+
 template<typename T>
-class Vec {
+class Vec :public BitVec{
 public:
     template<typename U>
-    explicit operator const Vec<U> &() const;
-
-//    template<typename U>
-//    Vec<U>(const Vec<U> &val);
+    operator const Vec<U> &() const;
 
     const Vec<T> &operator+(const Vec<T> &o) const;
+
+    const Vec<T> &operator<<(unsigned int amount) const;
 
     virtual void run(std::ostream &ostream) const = 0;
 
 protected:
-    Vec() {}
 
 private:
 
@@ -93,7 +94,7 @@ public:
             s << ") [" << t_size * bitsPerByte - 1 << ":0] ";
 
         } else if (t_size < u_size) {
-            s << "{ " << (u_size-t_size) * bitsPerByte << "'b0 , ( ";
+            s << "{ " << (u_size - t_size) * bitsPerByte << "'b0 , ( ";
             val.run(s);
             s << " ) }";
 
@@ -107,6 +108,38 @@ private:
     const Vec<T> &val;
 };
 
+
+template<typename T>
+class VecSelect : public Vec<T> {
+public:
+    VecSelect(const Vec<T> &val, unsigned int lower, unsigned int upper) : val(val), lower(lower), upper(upper) {}
+
+    virtual void run(std::ostream &s) const {
+        val.run(s);
+        s << val << " [" << upper << ":" << lower << "]";
+    };
+    const Vec<T> &val;
+    unsigned int lower;
+    unsigned int upper;
+};
+
+class BitVecConst : public BitVec {
+public:
+    BitVecConst(unsigned int n);
+
+    unsigned int num_bits;
+};
+
+template<typename T>
+class VecBitConcat : public Vec<T> {
+public:
+    VecBitConcat(const BitVec &a, const BitVec &b) :a(a), b(b) {}
+private:
+    virtual void run(std::ostream &ostream) const {};
+    const BitVec &a;
+    const BitVec &b;
+};
+
 template<typename T>
 inline const Vec<T> &c(int i) { return *new VecConst<T>(i); }
 
@@ -118,11 +151,19 @@ Vec<T>::operator const Vec<U> &() const {
     return *res;
 }
 
-
 template<typename T>
 const Vec<T> &Vec<T>::operator+(const Vec<T> &o) const {
     const VecAdd<T> *res = new VecAdd(*this, o);
     return *res;
+}
+
+
+template<typename T>
+const Vec<T> &Vec<T>::operator<<(unsigned int amount) const {
+    const BitVec &select = *new VecSelect<T>(*this, amount, sizeof(T) * bitsPerByte - amount);
+    const BitVec &zeros = *new BitVecConst(amount);
+    const VecBitConcat<T> *combined = new VecBitConcat<T>(zeros, select);
+    return *combined;
 }
 
 

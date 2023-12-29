@@ -7,4 +7,8 @@
     return *new VecConst<uint16_t>(i);
 }
 
+BitVecConst::BitVecConst(unsigned int n) : num_bits(n) {
+
+}
+
 #endif
