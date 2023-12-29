@@ -19,12 +19,14 @@ class BitVec {
 };
 
 template<typename T>
-class Vec :public BitVec{
+class Vec : public BitVec {
 public:
     template<typename U>
     operator const Vec<U> &() const;
 
     const Vec<T> &operator+(const Vec<T> &o) const;
+
+    const Vec<T> &operator*(const Vec<T> &o) const;
 
     const Vec<T> &operator<<(unsigned int amount) const;
 
@@ -50,6 +52,21 @@ public:
     virtual void run(std::ostream &s) const {
         a.run(s);
         s << " + ";
+        b.run(s);
+    }
+
+private:
+    const Vec<T> &a, &b;
+};
+
+template<typename T>
+class VecMult : public Vec<T> {
+public:
+    VecMult(v<T> a, v<T> b) : a(a), b(b) {}
+
+    virtual void run(std::ostream &s) const {
+        a.run(s);
+        s << " * ";
         b.run(s);
     }
 
@@ -133,7 +150,8 @@ public:
 template<typename T>
 class VecBitConcat : public Vec<T> {
 public:
-    VecBitConcat(const BitVec &a, const BitVec &b) :a(a), b(b) {}
+    VecBitConcat(const BitVec &a, const BitVec &b) : a(a), b(b) {}
+
 private:
     virtual void run(std::ostream &ostream) const {};
     const BitVec &a;
@@ -154,6 +172,12 @@ Vec<T>::operator const Vec<U> &() const {
 template<typename T>
 const Vec<T> &Vec<T>::operator+(const Vec<T> &o) const {
     const VecAdd<T> *res = new VecAdd(*this, o);
+    return *res;
+}
+
+template<typename T>
+const Vec<T> &Vec<T>::operator*(const Vec<T> &o) const {
+    const VecMult <T> *res = new VecMult(*this, o);
     return *res;
 }
 
@@ -189,6 +213,7 @@ public:
     v<T> operator*(uint8_t other) const { return v(val * other); }
     v<T> operator+(int other) const { return v(val + other); }
     v<T> operator+(v<T> other) const { return v(val + other); }
+    v<T> operator*(v<T> other) const { return v(val * other); }
     bool operator<=(T other) const { return val <= other; }
 
 private:
